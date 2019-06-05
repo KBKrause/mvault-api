@@ -8,23 +8,9 @@ namespace mvault_api_app
     {
         static void Main()
         {
-            Console.WriteLine("Hello world");
-            WebRequest request = WebRequest.Create("https://postman-echo.com/get?foo1=bar1&foo2=bar2");
-            request.Credentials = CredentialCache.DefaultCredentials;
-            WebResponse response = request.GetResponse();
-            Console.WriteLine(((HttpWebResponse)response).StatusCode);
-            using (Stream dataStream = response.GetResponseStream())
-            {
-                // Open the stream using a StreamReader for easy access.  
-                StreamReader reader = new StreamReader(dataStream);
-                // Read the content.  
-                string responseFromServer = reader.ReadToEnd();
-                // Display the content.  
-                Console.WriteLine(responseFromServer);
-            }
+            RestScaffolder rest = new RestScaffolder("https://postman-echo.com/get?foo1=bar1&foo2=bar2", RestScaffolder.Method.GET);
 
-            // Close the response.  
-            response.Close();
+            rest.Execute();
         }
     }
 }
