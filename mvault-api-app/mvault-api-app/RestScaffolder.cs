@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace mvault_api_app
 {
@@ -12,32 +14,22 @@ namespace mvault_api_app
         public String URL { get; set; }
         public Method HttpMethod { get; set; }
 
+        public String Body { get; set; }
+        public Dictionary <String, String> Headers { get; set; }
+
         public RestScaffolder(string URL, Method method)
         {
             this.URL = URL;
             this.HttpMethod = method;
         }
 
-        public void Execute()
+        public async Task<string> Get()
         {
-            if (HttpMethod == Method.GET)
+            HttpClient _httpClient = new HttpClient();
+            using (var result = await _httpClient.GetAsync("https://postman-echo.com/get?foo1=bar1&foo2=bar2"))
             {
-                WebRequest request = WebRequest.Create(this.URL);
-                request.Credentials = CredentialCache.DefaultCredentials;
-                WebResponse response = request.GetResponse();
-                Console.WriteLine(((HttpWebResponse)response).StatusCode);
-                using (Stream dataStream = response.GetResponseStream())
-                {
-                    // Open the stream using a StreamReader for easy access.  
-                    StreamReader reader = new StreamReader(dataStream);
-                    // Read the content.  
-                    string responseFromServer = reader.ReadToEnd();
-                    // Display the content.  
-                    Console.WriteLine(responseFromServer);
-                }
-
-                // Close the response.  
-                response.Close();
+                string content = await result.Content.ReadAsStringAsync();
+                return content;
             }
         }
     }
