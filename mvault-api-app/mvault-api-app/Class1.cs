@@ -11,22 +11,19 @@ namespace mvault_api_app
         private static RestScaffolder rest;
         static void Main()
         {
-            
-            rest = new RestScaffolder("https://postman-echo.com/get?foo1=bar1&foo2=bar2", RestScaffolder.Method.GET);
-
-            string result = rest.Get().Result;
-            Console.WriteLine(result);
-            /*
-            // Test GET
-            rest.Execute();
-
-            /* Test POST
-            rest.HttpMethod = RestScaffolder.Method.POST;
-            rest.URL = "http://httpbin.org/post";
-            */
-
+            rest = new RestScaffolder("http://httpbin.org/post", RestScaffolder.Method.POST);
+            rest.Body = "{'cat' : 'toffee'}";
+            rest.ExecuteStringPost().Wait();
+          
         }
 
+        static void TestGet()
+        {
+            rest = new RestScaffolder("https://postman-echo.com/get?foo1=bar1&foo2=bar2", RestScaffolder.Method.GET);
+
+            string result = rest.ExecuteGet().Result;
+            Console.WriteLine(result);
+        }
         
     }
 }

@@ -23,13 +23,46 @@ namespace mvault_api_app
             this.HttpMethod = method;
         }
 
-        public async Task<string> Get()
+        public async Task<string> ExecuteGet()
         {
-            HttpClient _httpClient = new HttpClient();
-            using (var result = await _httpClient.GetAsync("https://postman-echo.com/get?foo1=bar1&foo2=bar2"))
+            if (this.Body.Length > 0)
             {
-                string content = await result.Content.ReadAsStringAsync();
-                return content;
+                Console.WriteLine("ERROR: GET does not support form content; set the Body length to 0");
+                // TODO Return stmt
+                return null;
+            }
+            else
+            {
+                HttpClient _httpClient = new HttpClient();
+                using (var result = await _httpClient.GetAsync(this.URL))
+                {
+                    string content = await result.Content.ReadAsStringAsync();
+                    return content;
+                }
+            }
+        }
+
+        public async Task ExecuteStringPost()
+        {
+            if (this.HttpMethod != Method.POST)
+            {
+                Console.WriteLine("ERROR: POST not configured on class");
+                return;
+            }
+            else 
+            {
+                if (this.Body.Equals(null))
+                {
+                    Console.WriteLine("WARNING: POST does not contain form data");
+                }
+
+                HttpClient _client = new HttpClient();
+                var content = new StringContent(this.Body);
+
+                var response = await _client.PostAsync(this.URL, content);
+
+                var responseString = await response.Content.ReadAsStringAsync();
+                Console.WriteLine("Resp: " + responseString);
             }
         }
     }
