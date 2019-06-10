@@ -11,16 +11,38 @@ namespace mvault_api_app
     public class RestScaffolder
     {
         public enum Method { GET, POST, PUT, PATCH, DELETE };
-        public String URL { get; set; }
+
+        private string url;
+        public String URL
+        {
+            get
+            {
+                return this.url;
+            }
+            set
+            {
+                if (value.StartsWith("http"))
+                {
+                    Console.WriteLine("WARNING: You are accessing a non-TLS secured resource");
+                    this.url = value;
+                }
+            }
+        }
         public Method HttpMethod { get; set; }
 
         public String Body { get; set; }
-        public Dictionary <String, String> Headers { get; set; }
+        private Dictionary <String, String> Headers { get; set; }
 
         public RestScaffolder(string URL, Method method)
         {
             this.URL = URL;
             this.HttpMethod = method;
+            this.Headers = new Dictionary<String, String>();
+        }
+
+        public void AddHeader(string key, string value)
+        {
+            Headers.Add(key, value);
         }
 
         public async Task<string> ExecuteGet()
