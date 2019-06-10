@@ -11,13 +11,17 @@ namespace mvault_api_app
         private static RestScaffolder rest;
         static void Main()
         {
-            rest = new RestScaffolder("http://www.google.com", RestScaffolder.Method.GET);
-            Console.WriteLine("The URL is: " + rest.URL);
+            Console.WriteLine(DateTime.Now.ToString("yyyyMMDD'T'HHmmss'Z'"));
+            //TestGet();
+            //rest = new RestScaffolder("http://www.google.com", RestScaffolder.Method.GET);
+            //Console.WriteLine("The URL is: " + rest.URL);
         }
 
         static void TestGet()
         {
-            rest = new RestScaffolder("https://postman-echo.com/get?foo1=bar1&foo2=bar2", RestScaffolder.Method.GET);
+            rest = new RestScaffolder("https://0tmgxdej5k.execute-api.us-east-1.amazonaws.com/beta/foo", RestScaffolder.Method.GET);
+            rest.AddHeader("Authorization", "");
+            rest.AddHeader("X-Amz-Date", "");
             string result = rest.ExecuteGet().Result;
             Console.WriteLine(result);
         }

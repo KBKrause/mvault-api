@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -38,6 +39,7 @@ namespace mvault_api_app
             this.URL = URL;
             this.HttpMethod = method;
             this.Headers = new Dictionary<String, String>();
+            this.Body = "";
         }
 
         public void AddHeader(string key, string value)
@@ -56,6 +58,12 @@ namespace mvault_api_app
             else
             {
                 HttpClient _httpClient = new HttpClient();
+
+                foreach(KeyValuePair<string, string> header in this.Headers)
+                {
+                    _httpClient.DefaultRequestHeaders.TryAddWithoutValidation(header.Key, header.Value);
+                }
+
                 using (var result = await _httpClient.GetAsync(this.URL))
                 {
                     string content = await result.Content.ReadAsStringAsync();
@@ -86,6 +94,26 @@ namespace mvault_api_app
                 var responseString = await response.Content.ReadAsStringAsync();
                 Console.WriteLine("Resp: " + responseString);
             }
+        }
+
+        static byte[] HmacSHA256(String data, byte[] key)
+        {
+            String algorithm = "HmacSHA256";
+            KeyedHashAlgorithm kha = KeyedHashAlgorithm.Create(algorithm);
+            kha.Key = key;
+
+            return kha.ComputeHash(Encoding.UTF8.GetBytes(data));
+        }
+
+        static byte[] getSignatureKey(String key, String dateStamp, String regionName, String serviceName)
+        {
+            byte[] kSecret = Encoding.UTF8.GetBytes(("AWS4" + key).ToCharArray());
+            byte[] kDate = HmacSHA256(dateStamp, kSecret);
+            byte[] kRegion = HmacSHA256(regionName, kDate);
+            byte[] kService = HmacSHA256(serviceName, kRegion);
+            byte[] kSigning = HmacSHA256("aws4_request", kService);
+
+            return kSigning;
         }
     }
 }
