@@ -12,6 +12,7 @@ namespace mvault_api_app
     public class RestScaffolder
     {
         public enum Method { GET, POST, PUT, PATCH, DELETE };
+        public enum Execution { SYNCHRONOUS, ASYNCHRONOUS };
 
         private string url;
         public String URL
@@ -30,6 +31,7 @@ namespace mvault_api_app
             }
         }
         public Method HttpMethod { get; set; }
+        public Execution ExecutionStyle { get; set; }
 
         public String Body { get; set; }
         private Dictionary <String, String> Headers { get; set; }
@@ -39,6 +41,7 @@ namespace mvault_api_app
             this.URL = URL;
             this.HttpMethod = method;
             this.Headers = new Dictionary<String, String>();
+            this.ExecutionStyle = Execution.SYNCHRONOUS;
             this.Body = "";
         }
 
@@ -94,6 +97,28 @@ namespace mvault_api_app
                 var responseString = await response.Content.ReadAsStringAsync();
                 Console.WriteLine("Resp: " + responseString);
             }
+        }
+
+        private String SynchronousGet()
+        {
+            String retVal = "";
+
+            using (var client = new HttpClient())
+            {
+                var response = client.GetAsync("https://httpbin.org/get").Result;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = response.Content;
+
+                    // by calling .Result you are synchronously reading the result
+                    string responseString = responseContent.ReadAsStringAsync().Result;
+                    retVal = responseString;
+                    Console.WriteLine(responseString);
+                }
+            }
+
+            return retVal;
         }
 
         static byte[] HmacSHA256(String data, byte[] key)

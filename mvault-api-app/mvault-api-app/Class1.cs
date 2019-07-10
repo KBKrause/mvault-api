@@ -12,6 +12,27 @@ namespace mvault_api_app
         static void Main()
         {
             Console.WriteLine(DateTime.Now.ToString("yyyyMMDD'T'HHmmss'Z'"));
+            rest = new RestScaffolder("https://httpbin.org/get", RestScaffolder.Method.GET);
+
+            String retVal = "";
+
+            using (var client = new HttpClient())
+            {
+                HttpContent httpContent = new StringContent("foo");
+
+                var response = client.PostAsync("https://httpbin.org/post", httpContent).Result;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = response.Content;
+
+                    // by calling .Result you are synchronously reading the result
+                    string responseString = responseContent.ReadAsStringAsync().Result;
+                    retVal = responseString;
+                    Console.WriteLine(responseString);
+                }
+            }
+
             //TestGet();
             //rest = new RestScaffolder("http://www.google.com", RestScaffolder.Method.GET);
             //Console.WriteLine("The URL is: " + rest.URL);
