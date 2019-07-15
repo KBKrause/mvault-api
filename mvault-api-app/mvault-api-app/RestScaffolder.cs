@@ -12,9 +12,11 @@ namespace mvault_api_app
     public class RestScaffolder
     {
         public enum Method { GET, POST, PUT, PATCH, DELETE };
-        public enum Execution { SYNCHRONOUS, ASYNCHRONOUS };
+        //public enum Execution { SYNCHRONOUS, ASYNCHRONOUS };
 
         private string url;
+        private Dictionary<String, String> Headers { get; set; }
+
         public String URL
         {
             get
@@ -31,17 +33,16 @@ namespace mvault_api_app
             }
         }
         public Method HttpMethod { get; set; }
-        public Execution ExecutionStyle { get; set; }
+        //public Execution ExecutionStyle { get; set; }
 
         public String Body { get; set; }
-        private Dictionary <String, String> Headers { get; set; }
 
         public RestScaffolder(string URL, Method method)
         {
+            // TODO Timeout, header, method, endpoint, content type
             this.URL = URL;
             this.HttpMethod = method;
             this.Headers = new Dictionary<String, String>();
-            this.ExecutionStyle = Execution.SYNCHRONOUS;
             this.Body = "";
         }
 
@@ -50,7 +51,34 @@ namespace mvault_api_app
             Headers.Add(key, value);
         }
 
-        public async Task<string> ExecuteGet()
+        public Task<HttpResponseMessage> AsynchronousGet()
+        {
+            return this.executeGet();
+        }
+
+        public 
+
+        public HttpResponseMessage SynchronousGet()
+        {
+            return this.executeGet().Result;
+
+            // by calling .Result you are synchronously reading the result
+            //string responseString = responseContent.ReadAsStringAsync().Result;
+            //retVal = responseString;
+            //Console.WriteLine(responseString);
+        }
+
+        public HttpResponseMessage SynchronousPost()
+        {
+            return this.executePost().Result;
+        }
+
+        public Task<HttpResponseMessage> AsynchronousPost()
+        {
+            return this.executePost();
+        }
+
+        private Task<HttpResponseMessage> executeGet()
         {
             if (this.Body.Length > 0)
             {
@@ -62,27 +90,24 @@ namespace mvault_api_app
             {
                 HttpClient _httpClient = new HttpClient();
 
-                foreach(KeyValuePair<string, string> header in this.Headers)
+                foreach (KeyValuePair<string, string> header in this.Headers)
                 {
                     _httpClient.DefaultRequestHeaders.TryAddWithoutValidation(header.Key, header.Value);
                 }
 
-                using (var result = await _httpClient.GetAsync(this.URL))
-                {
-                    string content = await result.Content.ReadAsStringAsync();
-                    return content;
-                }
+                var result = _httpClient.GetAsync(this.URL);
+                return result;
             }
         }
 
-        public async Task ExecuteStringPost()
+        private Task<HttpResponseMessage> executePost()
         {
             if (this.HttpMethod != Method.POST)
             {
                 Console.WriteLine("ERROR: POST not configured on class");
-                return;
+                return null;
             }
-            else 
+            else
             {
                 if (this.Body.Equals(null))
                 {
@@ -92,36 +117,13 @@ namespace mvault_api_app
                 HttpClient _client = new HttpClient();
                 var content = new StringContent(this.Body);
 
-                var response = await _client.PostAsync(this.URL, content);
+                var response = _client.PostAsync(this.URL, content);
 
-                var responseString = await response.Content.ReadAsStringAsync();
-                Console.WriteLine("Resp: " + responseString);
+                return response;
             }
         }
 
-        private String SynchronousGet()
-        {
-            String retVal = "";
-
-            using (var client = new HttpClient())
-            {
-                var response = client.GetAsync("https://httpbin.org/get").Result;
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = response.Content;
-
-                    // by calling .Result you are synchronously reading the result
-                    string responseString = responseContent.ReadAsStringAsync().Result;
-                    retVal = responseString;
-                    Console.WriteLine(responseString);
-                }
-            }
-
-            return retVal;
-        }
-
-        static byte[] HmacSHA256(String data, byte[] key)
+        public static byte[] HmacSHA256(String data, byte[] key)
         {
             String algorithm = "HmacSHA256";
             KeyedHashAlgorithm kha = KeyedHashAlgorithm.Create(algorithm);
@@ -130,7 +132,7 @@ namespace mvault_api_app
             return kha.ComputeHash(Encoding.UTF8.GetBytes(data));
         }
 
-        static byte[] getSignatureKey(String key, String dateStamp, String regionName, String serviceName)
+        public static byte[] getSignatureKey(String key, String dateStamp, String regionName, String serviceName)
         {
             byte[] kSecret = Encoding.UTF8.GetBytes(("AWS4" + key).ToCharArray());
             byte[] kDate = HmacSHA256(dateStamp, kSecret);
